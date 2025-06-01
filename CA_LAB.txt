@@ -1642,5 +1642,173 @@ returnFunction:
     addi $sp, $sp, 12       # Restore stack
     jr $ra                  # Return
 
-22)
+22)Max
+.data
+    prompt1: .asciiz "Enter the number of integers (less than 500): "
+    prompt2: .asciiz "Enter elements one by one:\n"
+    max_msg: .asciiz "Maximum number: "
+    arr: .space 2000  # Reserve space for 500 integers
+
+.text
+    .globl main
+
+main:
+    # Prompt for number of elements
+    li $v0, 4
+    la $a0, prompt1
+    syscall
+    
+    # Read user input for array size
+    li $v0, 5
+    syscall
+    move $t0, $v0  # Store number of elements in $t0
+
+    # Prompt user for elements
+    li $v0, 4
+    la $a0, prompt2
+    syscall
+    
+    # Read elements into array
+    la $t1, arr  # Base address of array
+    li $t2, 0    # Counter
+
+input_loop:
+    bge $t2, $t0, find_max_func  # If counter >= size, call max function
+
+    li $v0, 5
+    syscall
+    sw $v0, 0($t1)  # Store input into array
+    addi $t1, $t1, 4  # Move to next array position
+    addi $t2, $t2, 1  # Increment counter
+    j input_loop
+
+find_max_func:
+    la $a0, arr  # Pass array base address
+    move $a1, $t0  # Pass number of elements
+    jal find_max  # Call function
+    move $t3, $v0  # Store returned max value
+
+    # Print "Maximum number: "
+    li $v0, 4
+    la $a0, max_msg
+    syscall
+
+    # Print max number
+    li $v0, 1
+    move $a0, $t3
+    syscall
+    
+    # Exit program
+    li $v0, 10
+    syscall
+
+find_max:
+    move $t4, $a0  # Load array base address
+    move $t5, $a1  # Load size
+    lw $t6, 0($t4)  # First element as initial max
+    li $t7, 1  # Loop counter
+
+max_loop:
+    bge $t7, $t5, return_max  # If counter >= size, return max
+
+    lw $t8, 4($t4)  # Load next element
+    bgt $t8, $t6, update_max  # Compare with current max
+    j continue_loop
+
+update_max:
+    move $t6, $t8  # Update max value
+
+continue_loop:
+    addi $t4, $t4, 4  # Move to next array element
+    addi $t7, $t7, 1  # Increment counter
+    j max_loop
+
+return_max:
+    move $v0, $t6  # Return max value
+    jr $ra
+23)min(fun
+.data
+    prompt1: .asciiz "Enter the number of integers (less than 500): "
+    prompt2: .asciiz "Enter elements one by one:\n"
+    min_msg: .asciiz "Minimum number: "
+    arr: .space 2000  # Reserve space for 500 integers
+
+.text
+    .globl main
+
+main:
+    # Prompt for number of elements
+    li $v0, 4
+    la $a0, prompt1
+    syscall
+    
+    # Read user input for array size
+    li $v0, 5
+    syscall
+    move $t0, $v0  # Store number of elements in $t0
+
+    # Prompt user for elements
+    li $v0, 4
+    la $a0, prompt2
+    syscall
+    
+    # Read elements into array
+    la $t1, arr  # Base address of array
+    li $t2, 0    # Counter
+
+input_loop:
+    bge $t2, $t0, find_min_func  # If counter >= size, call min function
+
+    li $v0, 5
+    syscall
+    sw $v0, 0($t1)  # Store input into array
+    addi $t1, $t1, 4  # Move to next array position
+    addi $t2, $t2, 1  # Increment counter
+    j input_loop
+
+find_min_func:
+    la $a0, arr  # Pass array base address
+    move $a1, $t0  # Pass number of elements
+    jal find_min  # Call function
+    move $t3, $v0  # Store returned min value
+
+    # Print "Minimum number: "
+    li $v0, 4
+    la $a0, min_msg
+    syscall
+
+    # Print min number
+    li $v0, 1
+    move $a0, $t3
+    syscall
+    
+    # Exit program
+    li $v0, 10
+    syscall
+
+find_min:
+    move $t4, $a0  # Load array base address
+    move $t5, $a1  # Load size
+    lw $t6, 0($t4)  # First element as initial min
+    li $t7, 1  # Loop counter
+
+min_loop:
+    bge $t7, $t5, return_min  # If counter >= size, return min
+
+    lw $t8, 4($t4)  # Load next element
+    blt $t8, $t6, update_min  # Compare with current min
+    j continue_loop
+
+update_min:
+    move $t6, $t8  # Update min value
+
+continue_loop:
+    addi $t4, $t4, 4  # Move to next array element
+    addi $t7, $t7, 1  # Increment counter
+    j min_loop
+
+return_min:
+    move $v0, $t6  # Return min value
+    jr $ra
+
  
