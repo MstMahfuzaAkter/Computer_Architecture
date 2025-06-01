@@ -428,6 +428,135 @@ int main() {
    return 0;
 }
 
+*****
+#include <iostream>
+#include <cmath>
+using namespace std;
+
+const int BITS = 4;
+
+// Converts decimal to 4-bit binary (two's complement)
+void decimalToBinary(int num, int bin[]) {
+    bool isNegative = (num < 0);
+    num = abs(num);
+    for (int i = 0; i < BITS; i++) {
+        bin[i] = num % 2;
+        num /= 2;
+    }
+    if (isNegative) {
+        // Two's complement
+        for (int i = 0; i < BITS; i++)
+            bin[i] = (bin[i] + 1) % 2;
+        int one[BITS] = {1};
+        int carry = 0;
+        for (int i = 0; i < BITS; i++) {
+            int sum = bin[i] + one[i] + carry;
+            bin[i] = sum % 2;
+            carry = sum / 2;
+        }
+    }
+}
+
+void display(int ac[], int qr[]) {
+    for (int i = BITS - 1; i >= 0; i--)
+        cout << ac[i];
+    cout << " ";
+    for (int i = BITS - 1; i >= 0; i--)
+        cout << qr[i];
+    cout << endl;
+}
+
+void add(int ac[], int br[]) {
+    int carry = 0;
+    for (int i = 0; i < BITS; i++) {
+        int sum = ac[i] + br[i] + carry;
+        ac[i] = sum % 2;
+        carry = sum / 2;
+    }
+}
+
+void shiftRight(int ac[], int qr[]) {
+    int temp = ac[0];
+    for (int i = 0; i < BITS - 1; i++) {
+        ac[i] = ac[i + 1];
+        qr[i] = qr[i + 1];
+    }
+    qr[BITS - 1] = temp;
+}
+
+int binaryToDecimal(int result[], bool isNegative) {
+    if (isNegative) {
+        for (int i = 0; i < 2 * BITS; i++)
+            result[i] = (result[i] + 1) % 2;
+        int one[2 * BITS] = {1};
+        int carry = 0;
+        for (int i = 0; i < 2 * BITS; i++) {
+            int sum = result[i] + one[i] + carry;
+            result[i] = sum % 2;
+            carry = sum / 2;
+        }
+    }
+
+    int decimal = 0, base = 1;
+    for (int i = 0; i < 2 * BITS; i++) {
+        decimal += result[i] * base;
+        base *= 2;
+    }
+    return isNegative ? -decimal : decimal;
+}
+
+int main() {
+    int ac[BITS] = {0};
+    int qr[BITS], br[BITS], sc = BITS;
+
+    int multiplier, multiplicand;
+    cout << "-- Sequential Multiplication (4-bit signed) --\n";
+    cout << "Enter multiplier (decimal, -8 to 7): ";
+    cin >> multiplier;
+    cout << "Enter multiplicand (decimal, -8 to 7): ";
+    cin >> multiplicand;
+
+    if (multiplier < -8 || multiplier > 7 || multiplicand < -8 || multiplicand > 7) {
+        cout << "Error: Inputs must be 4-bit signed values (-8 to 7).\n";
+        return 1;
+    }
+
+    decimalToBinary(multiplier, qr);
+    decimalToBinary(multiplicand, br);
+
+    int brCopy[BITS];
+    for (int i = 0; i < BITS; i++) brCopy[i] = br[i];
+
+    cout << "\nInitial AC and QR:\n";
+    display(ac, qr);
+
+    while (sc--) {
+        if (qr[0] == 1) {
+            cout << "\nAdding BR to AC:\n";
+            add(ac, br);
+            display(ac, qr);
+        }
+        cout << "\nShift Right:\n";
+        shiftRight(ac, qr);
+        display(ac, qr);
+    }
+
+    cout << "\nFinal Binary Result = ";
+    for (int i = BITS - 1; i >= 0; i--) cout << ac[i];
+    for (int i = BITS - 1; i >= 0; i--) cout << qr[i];
+    cout << endl;
+
+    int result[2 * BITS];
+    for (int i = 0; i < BITS; i++) result[i] = qr[i];
+    for (int i = 0; i < BITS; i++) result[i + BITS] = ac[i];
+
+    bool isNegative = result[2 * BITS - 1] == 1;
+    int decimal = binaryToDecimal(result, isNegative);
+    cout << "Decimal Result = " << decimal << endl;
+
+    return 0;
+}
+
 
 4)Divisor
 
@@ -520,6 +649,115 @@ int main() {
     }
 
     string accumulator(4, '0'); // Initially 0000
+    restoringDivision(dividend, divisor, accumulator);
+
+    return 0;
+}
+
+*****
+#include <iostream>
+#include <string>
+#include <algorithm>
+#include <bitset>
+
+using namespace std;
+
+// Add two binary strings
+string add(string A, string B) {
+    int carry = 0;
+    string sum;
+
+    for (int i = A.length() - 1; i >= 0; i--) {
+        int temp = A[i] - '0' + B[i] - '0' + carry;
+        sum.push_back('0' + (temp % 2));
+        carry = temp / 2;
+    }
+
+    reverse(sum.begin(), sum.end());
+    return sum;
+}
+
+// 2's complement
+string complement(string m) {
+    string M;
+    for (char ch : m)
+        M.push_back(ch == '0' ? '1' : '0');
+    M = add(M, string(m.length() - 1, '0') + '1');
+    return M;
+}
+
+// Convert binary string to decimal
+int binaryToDecimal(string bin) {
+    int result = 0;
+    for (char ch : bin) {
+        result = result * 2 + (ch - '0');
+    }
+    return result;
+}
+
+// Convert decimal to 4-bit binary string
+string decimalToBinary(int num) {
+    if (num < 0 || num > 15) {
+        cout << "Error: Only 4-bit unsigned integers (0–15) supported.\n";
+        exit(1);
+    }
+    return bitset<4>(num).to_string();
+}
+
+// Restoring Division Algorithm
+void restoringDivision(string Q, string M, string A) {
+    int count = M.length();
+    cout << "Initial Values: A:" << A << " Q:" << Q << " M:" << M << endl;
+
+    while (count > 0) {
+        cout << "\nStep " << (M.length() - count + 1) << ":\n";
+        A = A.substr(1) + Q[0];
+        string comp_M = complement(M);
+        A = add(A, comp_M);
+
+        cout << "Left Shift and Subtract: A:" << A << endl;
+        cout << "A:" << A << " Q:" << Q.substr(1) << "_";
+
+        if (A[0] == '1') {
+            Q = Q.substr(1) + '0';
+            cout << " - Unsuccessful" << endl;
+            A = add(A, M);
+            cout << "A:" << A << " Q:" << Q << " - Restoration" << endl;
+        } else {
+            Q = Q.substr(1) + '1';
+            cout << " - Successful" << endl;
+            cout << "A:" << A << " Q:" << Q << " - No Restoration" << endl;
+        }
+        count--;
+    }
+
+    cout << "\nFinal Result:\nQuotient (Q): " << Q << "\nRemainder (A): " << A << endl;
+
+    cout << "\nDecimal Output:\n";
+    cout << "Quotient (Q) = " << binaryToDecimal(Q) << endl;
+    cout << "Remainder (A) = " << binaryToDecimal(A) << endl;
+}
+
+int main() {
+    int dividendDec, divisorDec;
+
+    cout << "-- Restoring Division (4-bit unsigned) --\n";
+    cout << "Enter Dividend (decimal, 0–15): ";
+    cin >> dividendDec;
+
+    cout << "Enter Divisor (decimal, 1–15): ";
+    cin >> divisorDec;
+
+    // Input validation
+    if (dividendDec < 0 || dividendDec > 15 || divisorDec < 1 || divisorDec > 15) {
+        cout << "Error: Inputs must be 4-bit unsigned integers (Dividend: 0–15, Divisor: 1–15).\n";
+        return 1;
+    }
+
+    string dividend = decimalToBinary(dividendDec);
+    string divisor = decimalToBinary(divisorDec);
+    string accumulator(4, '0');
+
     restoringDivision(dividend, divisor, accumulator);
 
     return 0;
