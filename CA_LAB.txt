@@ -220,27 +220,33 @@ int main() {
 }
 
 4)Divisor
+
 #include <iostream>
 #include <bitset>
 
 using namespace std;
 
-// Function to divide two numbers and return quotient & remainder
-pair<int, int> divide(int dividend, int divisor) {
+// Function to perform binary division
+pair<int, int> binaryDivision(int dividend, int divisor) {
     if (divisor == 0) {
-        cerr << "Error: Division by zero" << endl;
+        cerr << "Error: Division by zero!" << endl;
         return make_pair(0, 0);
     }
 
-    int quotient = dividend / divisor;
-    int remainder = dividend % divisor;
+    int quotient = 0;
+    int remainder = dividend;
+
+    while (remainder >= divisor) {
+        remainder -= divisor;
+        quotient++;
+    }
 
     return make_pair(quotient, remainder);
 }
 
-// Convert binary string to integer (handles signed values)
+// Convert binary string to integer
 int binaryToInt(const string& binary) {
-    return bitset<8>(binary).to_ulong();  // Using 8-bit representation
+    return bitset<8>(binary).to_ulong();
 }
 
 // Convert integer to binary string
@@ -251,15 +257,15 @@ string intToBinary(int num, int bit_size) {
 int main() {
     string bin_dividend, bin_divisor;
 
-    cout << "Enter dividend (8-bit binary): ";
+    cout << "Enter dividend (binary): ";
     cin >> bin_dividend;
-    cout << "Enter divisor (8-bit binary): ";
+    cout << "Enter divisor (binary): ";
     cin >> bin_divisor;
 
     int dividend = binaryToInt(bin_dividend);
     int divisor = binaryToInt(bin_divisor);
 
-    auto result = divide(dividend, divisor);
+    auto result = binaryDivision(dividend, divisor);
 
     cout << "\nInteger Quotient: " << result.first << endl;
     cout << "Binary Quotient: " << intToBinary(result.first, 8) << endl;
